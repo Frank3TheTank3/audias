@@ -22,11 +22,22 @@ use App\Http\Controllers\PostController;
 
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
+    return Inertia::render('AudiasHome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register')
     ]);
 });
+/*
+Route::get('/tutorial', function () {
+    return Inertia::render('Tutorial', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register')
+    ])->name('tutorial');
+});
+*/
+Route::resources([
+    'tutorial' => GameController::class
+]);
 
 Route::middleware([
     'auth:sanctum',

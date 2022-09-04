@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Inertia\Inertia;
 use App\Models\Game;
 use Illuminate\Http\Request;
 
@@ -13,8 +13,9 @@ class GameController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index()
-    {
-        //
+{
+            return Inertia::render('Tutorial', [
+        ]);
     }
 
     /**

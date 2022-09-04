@@ -39,9 +39,11 @@ function StartGame() {
     var mountains3 = "img/backgrounds/mountain3.png";
     var trees = "img/trees/trees.png";
     var grass = "img/grass/grass.png";
+    var roads = "img/objects/roads.png";
     //Enemies
     var boss = "img/sprites/boss.png";
     var alien = "img/sprites/alien.png";
+    var car = "img/objects/car.png";
     //Player animations
     var standright = "img/sprites/IdleRight.png";
     var runright = "img/sprites/Run2.png";
@@ -55,6 +57,7 @@ function StartGame() {
     //Entity
     var ads = "img/objects/ads.png";
     var coin = "img/coin.png";
+    var box = "img/objects/box.png";
 
     const playerOffsetY = 15;
     const enemyOffsetX = 20;
@@ -63,14 +66,15 @@ function StartGame() {
     let currentKey = "none";
     let lastTime = 0;
     let keyBeforeJump = "none";
-
+    let numberOfLives = 3;
     let plattformImage = createImage(plattform);
     let bossImage = createImage(boss);
     let adsImage = createImage(ads);
     let coinImage = createImage(coin);
     let plattformImage2 = createImage(plattform2);
     let alienImage = createImage(alien);
-
+    let roadImage = createImage(roads);
+    let boxImage = createImage(box);
     let scrollOffset = 0;
 
     const keys = {
@@ -100,7 +104,7 @@ function StartGame() {
     }
 
     class Coin extends Entity {
-        constructor({x, y, image}) {
+        constructor({ x, y, image }) {
             super();
             this.position = {
                 x,
@@ -109,7 +113,22 @@ function StartGame() {
             this.image = image;
             this.width = 50;
             this.height = 50;
+        }
+        draw() {
+            ctx.drawImage(this.image, this.position.x, this.position.y);
+        }
+    }
 
+    class Box extends Entity {
+        constructor({ x, y, image }) {
+            super();
+            this.position = {
+                x,
+                y,
+            };
+            this.image = image;
+            this.width = 50;
+            this.height = 50;
         }
         draw() {
             ctx.drawImage(this.image, this.position.x, this.position.y);
@@ -246,7 +265,7 @@ function StartGame() {
     }
 
     class Fox extends Player {
-        constructor({x,y}) {
+        constructor({ x, y }) {
             super();
             this.position = {
                 x,
@@ -405,6 +424,7 @@ function StartGame() {
     let enemies = [];
     let scenery = [];
     let coins = [];
+    let boxes = [];
 
     function createImage(imgSrc) {
         const image = new Image();
@@ -413,6 +433,7 @@ function StartGame() {
     }
 
     function init() {
+        numberOfLives = 3;
         canvas.width = innerWidth - innerWidth / 8;
         canvas.height = 640;
         currentKey = "none";
@@ -430,11 +451,13 @@ function StartGame() {
             factor = 10;
         }
 
+        boxes = [new Box({ x: 850, y: 250, image: boxImage })];
+
         coins = [
-            new Coin({ x: 800, y: 550 , image: coinImage}),
-            new Coin({ x: 1200, y: 350 , image: coinImage}),
-            new Coin({ x: 1800, y: 500 , image: coinImage}),
-            new Coin({ x: 2400, y: 350 , image: coinImage})
+            new Coin({ x: 800, y: 550, image: coinImage }),
+            new Coin({ x: 1200, y: 350, image: coinImage }),
+            new Coin({ x: 1800, y: 500, image: coinImage }),
+            new Coin({ x: 2400, y: 350, image: coinImage }),
         ];
 
         plattforms = [
@@ -478,28 +501,36 @@ function StartGame() {
                 image: createImage(mountains2),
             }),
             new Scenery({
-                x: 2500,
+                x: 3500,
                 y: 0,
                 image: createImage(mountains3),
             }),
         ];
 
-
         let sceneryX = 350;
         for (let index = 0; index < 5; index++) {
-            scenery.push(
-                new Scenery({
-                    x: sceneryX,
-                    y: 350,
-                    image: createImage(grass),
-                })
-            );
+            if (index < 1) {
+                scenery.push(
+                    new Scenery({
+                        x: sceneryX,
+                        y: 350,
+                        image: createImage(grass),
+                    })
+                );
+            } else {
+                scenery.push(
+                    new Scenery({
+                        x: sceneryX,
+                        y: 250,
+                        image: roadImage,
+                    })
+                );
+            }
+
             sceneryX += 1920;
         }
 
         scrollOffset = 0;
-
-
     }
 
     function animate(timeStamp) {
@@ -510,7 +541,6 @@ function StartGame() {
         ctx.fillStyle = "white";
 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
 
         scenery.forEach((scenery) => {
             scenery.draw();
@@ -533,9 +563,11 @@ function StartGame() {
         coins.forEach((coin) => {
             coin.draw();
         });
+
+        boxes.forEach((box) => {
+            box.draw();
+        });
         player.update();
-
-
 
         //Player movement before screen middle
         if (keys.right.pressed && player.position.x < canvas.width / 4) {
@@ -563,6 +595,9 @@ function StartGame() {
                 coins.forEach((coin) => {
                     coin.position.x -= player.speed;
                 });
+                  boxes.forEach((box) => {
+                    box.position.x -= player.speed;
+                });
             } else if (keys.left.pressed && scrollOffset > 100) {
                 scrollOffset -= 5;
                 plattforms.forEach((plattform) => {
@@ -574,9 +609,13 @@ function StartGame() {
                 enemies.forEach((enemy) => {
                     enemy.position.x += player.speed;
                 });
-                 coins.forEach((coin) => {
+                coins.forEach((coin) => {
                     coin.position.x += player.speed;
                 });
+                boxes.forEach((box) => {
+                    box.position.x += player.speed;
+                });
+
             }
         }
 
@@ -604,7 +643,7 @@ function StartGame() {
             }
         });
         var newFoxX = player.position.x;
-                var newFoxY = player.position.y;
+        var newFoxY = player.position.y;
         //Enemy collision
         enemies.forEach((enemy) => {
             if (
@@ -617,15 +656,21 @@ function StartGame() {
                 player.position.x + player.width / 2 >= enemy.position.x &&
                 player.position.x <= enemy.position.x
             ) {
-                player.velocity.y = 0;
+                    player.velocity.y = 0;
+                    numberOfLives --;
+                    if(numberOfLives <= 0)
+                    {
+                        init();
 
-                player = new Fox({x: newFoxX,y: newFoxY} );
+                    }
+
+
             }
         });
 
         //Coin collision
         let numberofcoins = 0;
-         coins.forEach((coin, index) => {
+        coins.forEach((coin, index) => {
             if (
                 player.position.y <= coin.position.y + coin.height &&
                 player.position.y +
@@ -642,7 +687,21 @@ function StartGame() {
             }
         });
 
-
+        boxes.forEach((box, index) => {
+            if (
+                player.position.y <= box.position.y + box.height &&
+                player.position.y +
+                    player.height +
+                    player.velocity.y -
+                    playerOffsetY >=
+                    box.position.y + box.height / 5 &&
+                player.position.x + player.width / 2 >= box.position.x &&
+                player.position.x <= box.position.x
+            ) {
+                delete boxes[index];
+                player = new Fox({ x: newFoxX, y: newFoxY });
+            }
+        });
 
         //songDuration * 20 + 400
         if (scrollOffset > 5100) {
