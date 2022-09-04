@@ -13,7 +13,6 @@ var plattforms = [];
 let enemySpeed = 5;
 let canvas = ref(null);
 let ctx;
-let isFox;
 
 onMounted(() => {
     /*canvas = document.getElementById('canvas');*/
@@ -30,12 +29,14 @@ function StartGame() {
     /*=============================================================*/
     /*                      SET VARS                                |
     /*=============================================================*/
+
     //Plattforms
     var plattform = "img/plattforms/plattform_green_A.png";
     var plattform2 = "img/plattforms/plattform_yellow_A.png";
     //Scenery
     var mountains = "img/backgrounds/mountain1.png";
     var mountains2 = "img/backgrounds/mountain2.png";
+    var mountains3 = "img/backgrounds/mountain3.png";
     var trees = "img/trees/trees.png";
     var grass = "img/grass/grass.png";
     //Enemies
@@ -51,12 +52,9 @@ function StartGame() {
     var foxjumpright = "img/sprites/foxjump2.png";
     var foxrunright = "img/sprites/foxrun2.png";
 
-    //End goal
+    //Entity
     var ads = "img/objects/ads.png";
-
-    //const startButton = document.querySelector('button');
-    //startButton.style.display = 'none';
-    //canvas = document.getElementById('canvas');
+    var coin = "img/coin.png";
 
     const playerOffsetY = 15;
     const enemyOffsetX = 20;
@@ -66,9 +64,11 @@ function StartGame() {
     let lastTime = 0;
     let keyBeforeJump = "none";
 
-    let plattformImage2 = createImage(plattform2);
-    let plattformImage = createImage(ads);
+    let plattformImage = createImage(plattform);
     let bossImage = createImage(boss);
+    let adsImage = createImage(ads);
+    let coinImage = createImage(coin);
+    let plattformImage2 = createImage(plattform2);
     let alienImage = createImage(alien);
 
     let scrollOffset = 0;
@@ -88,158 +88,37 @@ function StartGame() {
     /*=============================================================*/
     /*                     PLAYER CLASS                             |
     /*=============================================================*/
-
-    /*
-    class Player {
+    class Entity {
         constructor() {
-            this.speed = 10;
-
             this.position = {
                 x: 30,
                 y: 30,
             };
-            this.velocity = {
-                x: 0,
-                y: 0,
-            };
             this.width = 250;
             this.height = 220;
-            if (!isFox) {
-                this.image = createImage(standright);
-            } else {
-                this.image = createImage(standright);
-            }
-
-            this.frames = 0;
-
-            this.sprites = {
-                stand: {
-                    right: createImage(standright),
-                    cropwidth: 350,
-                },
-                run: {
-                    left: createImage(runleft),
-                    right: createImage(runright),
-                    cropwidth: 250,
-                },
-                jump: {
-                    right: createImage(jumpright),
-                    cropwidth: 250,
-                },
-            };
-            this.foxSprites = {
-                stand: {
-                    right: createImage(foxidleright),
-                    cropwidth: 230,
-                },
-                run: {
-                    left: createImage(foxrunright),
-                    right: createImage(foxrunright),
-                    cropwidth: 230,
-                },
-                jump: {
-                    right: createImage(foxjumpright),
-                    cropwidth: 231,
-                },
-            };
-            this.currentSprite = this.sprites.stand.right;
-            this.currentCropWidth = 230;
-        }
-
-        draw() {
-            if (!isFox) {
-                ctx.drawImage(
-                    this.currentSprite,
-                    510 * this.frames,
-                    0,
-                    350,
-                    261,
-                    this.position.x,
-                    this.position.y,
-                    this.width,
-                    this.height
-                );
-
-            } else {
-                ctx.drawImage(
-                    this.currentSprite,
-                    230 * this.frames,
-                    0,
-                    230,
-                    125,
-                    this.position.x,
-                    this.position.y,
-                    this.width,
-                    this.height
-                );
-            }
-        }
-
-        update() {
-            this.frames++;
-
-            if (!isFox) {
-                if (
-                    this.frames > 15 &&
-                    this.currentSprite === this.sprites.stand.right
-                ) {
-                    this.frames = 0;
-                } else if (
-                    this.frames > 12 &&
-                    this.currentSprite === this.sprites.run.right
-                ) {
-                    this.frames = 0;
-                } else if (
-                    this.frames > 12 &&
-                    this.currentSprite === this.sprites.run.left
-                ) {
-                    this.frames = 0;
-                } else if (
-                    this.frames > 14 &&
-                    this.currentSprite === this.sprites.jump.right
-                ) {
-                    this.frames = 0;
-                }
-            } else {
-                if (
-                    this.frames > 3 &&
-                    this.currentSprite === this.foxSprites.stand.right
-                ) {
-                    this.frames = 0;
-                } else if (
-                    this.frames > 8 &&
-                    this.currentSprite === this.foxSprites.run.right
-                ) {
-                    this.frames = 0;
-                } else if (
-                    this.frames > 8 &&
-                    this.currentSprite === this.foxSprites.run.left
-                ) {
-                    this.frames = 0;
-                } else if (
-                    this.frames > 4 &&
-                    this.currentSprite === this.foxSprites.jump.right
-                ) {
-                    this.frames = 0;
-                }
-            }
-
-            this.draw();
-            this.position.y += this.velocity.y;
-            this.position.x += this.velocity.x;
-            if (
-                this.position.y + this.height + this.velocity.y <=
-                canvas.height
-            ) {
-                this.velocity.y += gravity;
-            }
         }
     }
 
-    */
+    class Coin extends Entity {
+        constructor({x, y, image}) {
+            super();
+            this.position = {
+                x,
+                y,
+            };
+            this.image = image;
+            this.width = 50;
+            this.height = 50;
 
-    class Player {
+        }
+        draw() {
+            ctx.drawImage(this.image, this.position.x, this.position.y);
+        }
+    }
+
+    class Player extends Entity {
         constructor() {
+            super();
             this.speed = 10;
 
             this.position = {
@@ -263,6 +142,31 @@ function StartGame() {
                 canvas.height
             ) {
                 this.velocity.y += gravity;
+            }
+
+            if (isJumping) {
+                this.currentSprite = this.sprites.jump.right;
+            } else {
+                if (
+                    currentKey == "right" &&
+                    this.currentSprite !== this.sprites.run.right
+                ) {
+                    this.frames = 1;
+                    this.currentSprite = this.sprites.run.right;
+                } else if (
+                    currentKey === "left" &&
+                    this.currentSprite !== this.sprites.run.left
+                ) {
+                    this.frames = 1;
+                    this.currentSprite = this.sprites.run.left;
+                } else if (
+                    currentKey === "up" &&
+                    this.currentSprite !== this.sprites.jump.right
+                ) {
+                    this.currentSprite = this.sprites.jump.right;
+                } else if (currentKey === "none") {
+                    this.currentSprite = this.sprites.stand.right;
+                }
             }
         }
     }
@@ -270,7 +174,10 @@ function StartGame() {
     class Hero extends Player {
         constructor() {
             super();
-
+            this.position = {
+                x: 30,
+                y: 30,
+            };
             this.image = createImage(standright);
             this.width = 250;
             this.height = 220;
@@ -337,10 +244,15 @@ function StartGame() {
             super.update();
         }
     }
+
     class Fox extends Player {
-        constructor() {
+        constructor({x,y}) {
             super();
-            this.speed = 10;
+            this.position = {
+                x,
+                y,
+            };
+            this.speed = 15;
             this.width = 230;
             this.height = 125;
             this.image = createImage(foxidleright);
@@ -403,7 +315,6 @@ function StartGame() {
                 this.frames = 0;
             }
             super.update();
-
         }
     }
 
@@ -425,8 +336,6 @@ function StartGame() {
         }
 
         draw() {
-            //ctx.fillStyle = 'green'
-            //ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
             ctx.drawImage(this.image, this.position.x, this.position.y);
         }
     }
@@ -492,10 +401,10 @@ function StartGame() {
     /*                     CORE FUNCTIONS                           |
     /*=============================================================*/
 
-    let player = new Fox();
-
+    let player = undefined;
     let enemies = [];
     let scenery = [];
+    let coins = [];
 
     function createImage(imgSrc) {
         const image = new Image();
@@ -509,12 +418,10 @@ function StartGame() {
         currentKey = "none";
         keys.right.pressed = false;
         keys.left.pressed = false;
-        let plattformImage = createImage(plattform);
-        let bossImage = createImage(boss);
-        let adsImage = createImage(ads);
-        player = new Fox();
+
+        player = new Hero();
         let durationInLevelDistance = levelDistance.value * 10;
-        console.log(durationInLevelDistance);
+        //console.log(durationInLevelDistance);
 
         let factor;
         if (durationInLevelDistance > 1500) {
@@ -522,6 +429,14 @@ function StartGame() {
         } else {
             factor = 10;
         }
+
+        coins = [
+            new Coin({ x: 800, y: 550 , image: coinImage}),
+            new Coin({ x: 1200, y: 350 , image: coinImage}),
+            new Coin({ x: 1800, y: 500 , image: coinImage}),
+            new Coin({ x: 2400, y: 350 , image: coinImage})
+        ];
+
         plattforms = [
             new Plattform({ x: 0, y: 500, image: plattformImage }),
             new Plattform({ x: 800, y: 550, image: plattformImage2 }),
@@ -529,6 +444,9 @@ function StartGame() {
             new Plattform({ x: 1800, y: 500, image: plattformImage2 }),
             new Plattform({ x: 2400, y: 350, image: plattformImage }),
             new Plattform({ x: 3000, y: 550, image: plattformImage2 }),
+            new Plattform({ x: 3500, y: 500, image: plattformImage }),
+            new Plattform({ x: 4000, y: 450, image: plattformImage2 }),
+            new Plattform({ x: 4600, y: 500, image: plattformImage }),
             new Plattform({
                 x: durationInLevelDistance,
                 y: 250,
@@ -540,6 +458,8 @@ function StartGame() {
             new Enemies({ x: 800, y: 400, image: bossImage }),
             new Enemies({ x: 1500, y: 0, image: alienImage }),
         ];
+
+        console.log(coins);
 
         scenery = [
             new Scenery({
@@ -557,7 +477,14 @@ function StartGame() {
                 y: 0,
                 image: createImage(mountains2),
             }),
+            new Scenery({
+                x: 2500,
+                y: 0,
+                image: createImage(mountains3),
+            }),
         ];
+
+
         let sceneryX = 350;
         for (let index = 0; index < 5; index++) {
             scenery.push(
@@ -571,6 +498,8 @@ function StartGame() {
         }
 
         scrollOffset = 0;
+
+
     }
 
     function animate(timeStamp) {
@@ -581,6 +510,7 @@ function StartGame() {
         ctx.fillStyle = "white";
 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+
 
         scenery.forEach((scenery) => {
             scenery.draw();
@@ -600,7 +530,14 @@ function StartGame() {
             enemy.update();
         });
 
+        coins.forEach((coin) => {
+            coin.draw();
+        });
         player.update();
+
+
+
+        //Player movement before screen middle
         if (keys.right.pressed && player.position.x < canvas.width / 4) {
             player.velocity.x = player.speed;
         } else if (
@@ -611,6 +548,7 @@ function StartGame() {
         } else {
             player.velocity.x = 0;
 
+            //On player movement after screen middle
             if (keys.right.pressed) {
                 scrollOffset += player.speed;
                 plattforms.forEach((plattform) => {
@@ -621,6 +559,9 @@ function StartGame() {
                 });
                 enemies.forEach((enemy) => {
                     enemy.position.x -= player.speed;
+                });
+                coins.forEach((coin) => {
+                    coin.position.x -= player.speed;
                 });
             } else if (keys.left.pressed && scrollOffset > 100) {
                 scrollOffset -= 5;
@@ -633,9 +574,13 @@ function StartGame() {
                 enemies.forEach((enemy) => {
                     enemy.position.x += player.speed;
                 });
+                 coins.forEach((coin) => {
+                    coin.position.x += player.speed;
+                });
             }
         }
 
+        //Plafftorm collision
         plattforms.forEach((plattform) => {
             if (
                 player.position.y + player.height <=
@@ -658,7 +603,9 @@ function StartGame() {
                 }
             }
         });
-
+        var newFoxX = player.position.x;
+                var newFoxY = player.position.y;
+        //Enemy collision
         enemies.forEach((enemy) => {
             if (
                 player.position.y <= enemy.position.y + enemy.height &&
@@ -671,40 +618,34 @@ function StartGame() {
                 player.position.x <= enemy.position.x
             ) {
                 player.velocity.y = 0;
-                isFox = true;
-                //init();
+
+                player = new Fox({x: newFoxX,y: newFoxY} );
             }
         });
 
-        //MOVEMENT SPRITES //////////////////////////////////////////////////////////////////////////////////////////////////
-
-        if (isJumping) {
-            player.currentSprite = player.sprites.jump.right;
-        } else {
+        //Coin collision
+        let numberofcoins = 0;
+         coins.forEach((coin, index) => {
             if (
-                currentKey == "right" &&
-                player.currentSprite !== player.sprites.run.right
+                player.position.y <= coin.position.y + coin.height &&
+                player.position.y +
+                    player.height +
+                    player.velocity.y -
+                    playerOffsetY >=
+                    coin.position.y + coin.height / 5 &&
+                player.position.x + player.width / 2 >= coin.position.x &&
+                player.position.x <= coin.position.x
             ) {
-                player.frames = 1;
-                player.currentSprite = player.sprites.run.right;
-            } else if (
-                currentKey === "left" &&
-                player.currentSprite !== player.sprites.run.left
-            ) {
-                player.frames = 1;
-                player.currentSprite = player.sprites.run.left;
-            } else if (
-                currentKey === "up" &&
-                player.currentSprite !== player.sprites.jump.right
-            ) {
-                player.currentSprite = player.sprites.jump.right;
-            } else if (currentKey === "none") {
-                player.currentSprite = player.sprites.stand.right;
+                delete coins[index];
+                numberofcoins++;
+                console.log(numberofcoins);
             }
-        }
+        });
+
+
 
         //songDuration * 20 + 400
-        if (scrollOffset > 2800) {
+        if (scrollOffset > 5100) {
             init();
             alert("Congratulations, you win!");
         }
