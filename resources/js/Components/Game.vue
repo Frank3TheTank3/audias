@@ -1,15 +1,24 @@
-
-
-
 <script setup>
+/*====================================*/
+/*                 IMPORT               |
+/*====================================*/
+
 import { useGameStore } from "../../store/gamestore";
 import { storeToRefs } from "pinia";
 import { reactive } from "vue";
 import { Inertia } from "@inertiajs/inertia";
 
+/*====================================*/
+/*                 PINIA               |
+/*====================================*/
+
 let { gameHasStarted, levelDistance, movingHeight } = storeToRefs(
     useGameStore()
 );
+
+/*====================================*/
+/*                 VARS               |
+/*====================================*/
 
 import { ref, onMounted, watch } from "vue";
 var plattforms = [];
@@ -24,14 +33,19 @@ let numberOfLives = 3;
 let setLevelDistance;
 let showingCars = true;
 let addingCars;
-
+let gamePaused;
+let gameWon;
 let form = reactive({
     score: null,
 });
 
 function submit() {
-    Inertia.post("tutorial", form);
+    Inertia.post("game", form);
 }
+
+/*====================================*/
+/*            ON MOUNTED              |
+/*====================================*/
 
 onMounted(() => {
     function byId(e) {
@@ -53,6 +67,10 @@ onMounted(() => {
     setLevelDistance = levelDistance.value * 15;
 });
 
+/*====================================*/
+/*          CANVAS BUTTONS             |
+/*====================================*/
+
 function callButtonPress(keyValue, keyCodeValue) {
     console.log("BTN " + keyValue + " pressed");
     window.dispatchEvent(
@@ -67,16 +85,20 @@ function callButtonPress(keyValue, keyCodeValue) {
 
 function StartGame() {
     console.log("Starting game...");
-    canvas.value.width = 1080;
-    canvas.value.height = 640;
+
     /*=============================================================*/
     /*                      SET VARS                                |
     /*=============================================================*/
+
+    //Canvas dimensions
+    canvas.value.width = 1080;
+    canvas.value.height = 640;
 
     //Plattforms
     var plattform = "img/plattforms/plattform_green_A.png";
     var plattform2 = "img/plattforms/plattform_yellow_A.png";
     var plattform3 = "img/plattforms/plattform_cave_B.png";
+
     //Scenery
     var mountains = "img/backgrounds/mountain1.png";
     var mountains2 = "img/backgrounds/mountain2.png";
@@ -84,25 +106,30 @@ function StartGame() {
     var trees = "img/trees/trees.png";
     var grass = "img/grass/grass.png";
     var roads = "img/objects/roads.png";
+
     //Enemies
     var boss = "img/sprites/boss.png";
     var alien = "img/sprites/alien.png";
     var car = "img/objects/car.png";
+
     //Player animations
     var standright = "img/sprites/IdleRight.png";
     var runright = "img/sprites/Run2.png";
     var runleft = "img/sprites/RunBack.png";
     var jumpright = "img/sprites/Jump_Up_Right.png";
+
     //Fox animations
     var foxidleright = "img/sprites/foxidle2.png";
     var foxjumpright = "img/sprites/foxjump2.png";
     var foxrunright = "img/sprites/foxrun2.png";
     var foxrunleft = "img/sprites/foxrun3.png";
-    //Entity
+
+    //Entities
     var ads = "img/objects/ads.png";
     var coin = "img/coin.png";
     var box = "img/objects/box.png";
 
+    //Get play buttons and activate
     document.getElementById("pad").style["display"] = "flex";
     document.getElementById("buttonA").style["display"] = "flex";
     document.getElementById("buttonB").style["display"] = "flex";
@@ -115,6 +142,9 @@ function StartGame() {
     let lastTime = 0;
     let keyBeforeJump = "none";
     let durationInLevelDistance;
+    let enemiesDoDamage;
+
+    //Game images
     let plattformImage = createImage(plattform);
     let bossImage = createImage(boss);
     let adsImage = createImage(ads);
@@ -126,7 +156,8 @@ function StartGame() {
     let boxImage = createImage(box);
     let carImage = createImage(car);
     let scrollOffset = 0;
-    var enemiesDoDamage;
+
+
     const keys = {
         right: {
             pressed: false,
@@ -142,6 +173,7 @@ function StartGame() {
     /*=============================================================*/
     /*                     PLAYER CLASS                             |
     /*=============================================================*/
+
     class Entity {
         constructor() {
             this.position = {
@@ -207,6 +239,7 @@ function StartGame() {
             }
         }
     }
+
     class Player extends Entity {
         constructor() {
             super();
@@ -504,6 +537,9 @@ function StartGame() {
         return image;
     }
 
+    /*=============================================================*/
+    /*                     INITIALIZE FUNCTION                     |
+    /*=============================================================*/
     function init() {
         enemiesDoDamage = true;
         durationInLevelDistance = setLevelDistance;
@@ -625,6 +661,9 @@ function StartGame() {
         addingCars = false;
     }
 
+    /*=============================================================*/
+    /*                        ANIMATE FUNCTION                      |
+    /*=============================================================*/
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
@@ -632,11 +671,17 @@ function StartGame() {
         livesDisplay.innerHTML = numberOfLives;
         distanceDisplay.innerHTML = durationInLevelDistance;
         //console.log(deltaTime)
-        requestAnimationFrame(animate);
+        if (!gameWon && !gamePaused) {
+            requestAnimationFrame(animate);
+        }
+
         ctx.fillStyle = "white";
 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        /*=============================================================*/
+        /*                     DRAW OBJECTS FUNCTION                    |
+    /*=============================================================*/
         scenery.forEach((scenery) => {
             scenery.draw();
         });
@@ -671,6 +716,9 @@ function StartGame() {
         });
         player.update();
 
+        /*=============================================================*/
+        /*                     MOVEMENT SCROLLING                      |
+    /*=============================================================*/
         //Player movement before screen middle
         if (keys.right.pressed && player.position.x < canvas.width / 4) {
             player.velocity.x = player.speed;
@@ -722,7 +770,12 @@ function StartGame() {
             }
         }
 
-        //Plafftorm collision
+        /*=============================================================*/
+        /*                     COLLISIONS FUNCTION                     |
+    /*=============================================================*/
+        /*====================================*/
+        /*              PLATTFORMS            |
+    /*====================================*/
         plattforms.forEach((plattform) => {
             if (
                 player.position.y + player.height <=
@@ -748,6 +801,9 @@ function StartGame() {
         var newFoxX = player.position.x;
         var newFoxY = player.position.y;
 
+        /*====================================*/
+        /*                ENEMIES              |
+    /*====================================*/
         //Enemy collision
         enemies.forEach((enemy) => {
             if (enemiesDoDamage) {
@@ -778,8 +834,9 @@ function StartGame() {
             }
         });
 
-        //Coin collision
-
+        /*====================================*/
+        /*                 COINS               |
+    /*====================================*/
         coins.forEach((coin, index) => {
             if (
                 player.position.y <= coin.position.y + coin.height &&
@@ -797,6 +854,9 @@ function StartGame() {
             }
         });
 
+        /*====================================*/
+        /*                 BOXES               |
+    /*====================================*/
         boxes.forEach((box, index) => {
             if (
                 player.position.y <= box.position.y + box.height &&
@@ -813,11 +873,13 @@ function StartGame() {
             }
         });
 
-        //songDuration * 20 + 400
         if (scrollOffset > 5100) {
-
-            form.score = (durationInLevelDistance + numberofcoins - numberOfLives);
-            submit();
+            if (!gameWon) {
+                gameWon = true;
+                form.score =
+                    durationInLevelDistance + numberofcoins - numberOfLives;
+                submit();
+            }
         }
 
         if (player.position.y > canvas.height) {
@@ -890,7 +952,7 @@ function StartGame() {
     });
 
     /*=============================================================*/
-    /*                  SCENE INITIALIZATION                        |
+    /*          SCENE INITIALIZATION  & ANIMATION CALL              |
     /*=============================================================*/
 
     init();
@@ -972,20 +1034,4 @@ p {
             <img src="img/button.png" alt="" />
         </button>
     </div>
-    <!--
-    <div class="flex justify-center">
-        <input
-            class="
-                bg-blue-500
-                hover:bg-blue-700
-                text-white
-                font-bold
-                py-2>
-            type="file"
-            id="audioupload"
-            name="audioupload"
-            accept="audio/mp3,audio/*; capture=microphone"
-        />
-    </div>
-    -->
 </template>

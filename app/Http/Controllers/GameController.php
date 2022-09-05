@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Models\Game;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class GameController extends Controller
 {
@@ -38,6 +39,7 @@ class GameController extends Controller
     {
         $game = new Game();
         $game->score = $request->score;
+        $game->playername = Auth::user()->name;
         $game->save();
         return Inertia::render('Tutorial', [
         ]);

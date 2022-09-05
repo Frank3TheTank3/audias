@@ -4,10 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\GameController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\PostController;
-
+use App\Models\Game;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +24,10 @@ Route::get('/', function () {
         'canRegister' => Route::has('register')
     ]);
 });
+
+Route::get('/home', function () {
+    return Inertia::render('AudiasHome');
+})->name('home');
 /*
 Route::get('/tutorial', function () {
     return Inertia::render('Tutorial', [
@@ -36,7 +37,6 @@ Route::get('/tutorial', function () {
 });
 */
 Route::resources([
-    'tutorial' => GameController::class,
     'game' => GameController::class
 ]);
 
@@ -46,7 +46,8 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
+        $games = Game::all();
+        return Inertia::render('Dashboard', [ 'games' => $games]);
     })->name('dashboard');
 });
 

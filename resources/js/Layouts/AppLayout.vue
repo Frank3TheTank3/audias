@@ -50,7 +50,7 @@ const logout = () => {
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <JetNavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard
+                                    User menu
                                 </JetNavLink>
                             </div>
                         </div>
@@ -150,18 +150,20 @@ const logout = () => {
                                     </template>
 
                                     <template #content>
-                                        <!-- Account Management -->
-                                        <div class="block px-4 py-2 text-xs text-gray-400">
-                                            Manage Account
-                                        </div>
+
+                                        <JetDropdownLink :href="route('home')">
+                                           Back to the Game
+                                        </JetDropdownLink>
+
+                                        <JetDropdownLink :href="route('game.index')">
+                                            Tutorial
+                                        </JetDropdownLink>
 
                                         <JetDropdownLink :href="route('profile.show')">
                                             Profile
                                         </JetDropdownLink>
 
-                                        <JetDropdownLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">
-                                            API Tokens
-                                        </JetDropdownLink>
+
 
                                         <div class="border-t border-gray-100" />
 
