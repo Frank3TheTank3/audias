@@ -36,7 +36,8 @@ Route::get('/tutorial', function () {
 });
 */
 Route::resources([
-    'tutorial' => GameController::class
+    'tutorial' => GameController::class,
+    'game' => GameController::class
 ]);
 
 Route::middleware([

@@ -4,6 +4,9 @@
 <script setup>
 import { useGameStore } from "../../store/gamestore";
 import { storeToRefs } from "pinia";
+import { reactive } from "vue";
+import { Inertia } from "@inertiajs/inertia";
+
 let { gameHasStarted, levelDistance, movingHeight } = storeToRefs(
     useGameStore()
 );
@@ -13,14 +16,54 @@ var plattforms = [];
 let enemySpeed = 5;
 let canvas = ref(null);
 let ctx;
+let coinsDisplay;
+let livesDisplay;
+let distanceDisplay;
+let numberofcoins = 0;
+let numberOfLives = 3;
+let setLevelDistance;
+let showingCars = true;
+let addingCars;
+
+let form = reactive({
+    score: null,
+});
+
+function submit() {
+    Inertia.post("tutorial", form);
+}
 
 onMounted(() => {
-    /*canvas = document.getElementById('canvas');*/
-    console.log("Canvas element: " + canvas);
+    function byId(e) {
+        return document.getElementById(e);
+    }
+    coinsDisplay = byId("coins");
+    livesDisplay = byId("lives");
+    distanceDisplay = byId("distance");
+
     ctx = canvas.value.getContext("2d");
     //canvas.width = innerWidth - 50;
     //canvas.height = innerHeight / 2;
+    document.getElementById("buttonA").addEventListener("click", function () {
+        callButtonPress("w", 87);
+    });
+    document.getElementById("buttonB").addEventListener("click", function () {
+        callButtonPress("d", 68);
+    });
+    setLevelDistance = levelDistance.value * 15;
 });
+
+function callButtonPress(keyValue, keyCodeValue) {
+    console.log("BTN " + keyValue + " pressed");
+    window.dispatchEvent(
+        new KeyboardEvent("keydown", {
+            key: keyValue,
+            keyCode: keyCodeValue, // example values.
+            code: "Key" + keyValue, // put everything you need in this object.
+            which: keyCodeValue,
+        })
+    );
+}
 
 function StartGame() {
     console.log("Starting game...");
@@ -33,6 +76,7 @@ function StartGame() {
     //Plattforms
     var plattform = "img/plattforms/plattform_green_A.png";
     var plattform2 = "img/plattforms/plattform_yellow_A.png";
+    var plattform3 = "img/plattforms/plattform_cave_B.png";
     //Scenery
     var mountains = "img/backgrounds/mountain1.png";
     var mountains2 = "img/backgrounds/mountain2.png";
@@ -53,30 +97,36 @@ function StartGame() {
     var foxidleright = "img/sprites/foxidle2.png";
     var foxjumpright = "img/sprites/foxjump2.png";
     var foxrunright = "img/sprites/foxrun2.png";
-
+    var foxrunleft = "img/sprites/foxrun3.png";
     //Entity
     var ads = "img/objects/ads.png";
     var coin = "img/coin.png";
     var box = "img/objects/box.png";
 
-    const playerOffsetY = 15;
+    document.getElementById("pad").style["display"] = "flex";
+    document.getElementById("buttonA").style["display"] = "flex";
+    document.getElementById("buttonB").style["display"] = "flex";
+
+    const playerOffsetY = 5;
     const enemyOffsetX = 20;
     const gravity = 0.5;
     let isJumping = false;
     let currentKey = "none";
     let lastTime = 0;
     let keyBeforeJump = "none";
-    let numberOfLives = 3;
+    let durationInLevelDistance;
     let plattformImage = createImage(plattform);
     let bossImage = createImage(boss);
     let adsImage = createImage(ads);
     let coinImage = createImage(coin);
     let plattformImage2 = createImage(plattform2);
+    let plattformImage3 = createImage(plattform3);
     let alienImage = createImage(alien);
     let roadImage = createImage(roads);
     let boxImage = createImage(box);
+    let carImage = createImage(car);
     let scrollOffset = 0;
-
+    var enemiesDoDamage;
     const keys = {
         right: {
             pressed: false,
@@ -135,6 +185,28 @@ function StartGame() {
         }
     }
 
+    class Car extends Entity {
+        constructor({ x, y, image }) {
+            super();
+            this.position = {
+                x,
+                y,
+            };
+            this.image = image;
+            this.width = 200;
+            this.height = 86;
+        }
+        draw() {
+            ctx.drawImage(this.image, this.position.x, this.position.y);
+        }
+
+        update() {
+            this.position.x -= 10;
+            if (this.position.x < -this.width) {
+                this.position.x = canvas.width + this.width;
+            }
+        }
+    }
     class Player extends Entity {
         constructor() {
             super();
@@ -282,7 +354,7 @@ function StartGame() {
                     cropwidth: 230,
                 },
                 run: {
-                    left: createImage(foxrunright),
+                    left: createImage(foxrunleft),
                     right: createImage(foxrunright),
                     cropwidth: 230,
                 },
@@ -433,7 +505,12 @@ function StartGame() {
     }
 
     function init() {
+        enemiesDoDamage = true;
+        durationInLevelDistance = setLevelDistance;
+        coinsDisplay.innerHTML = 0;
+        numberofcoins = 0;
         numberOfLives = 3;
+        distanceDisplay.innerHTML = durationInLevelDistance;
         canvas.width = innerWidth - innerWidth / 8;
         canvas.height = 640;
         currentKey = "none";
@@ -441,7 +518,7 @@ function StartGame() {
         keys.left.pressed = false;
 
         player = new Hero();
-        let durationInLevelDistance = levelDistance.value * 10;
+
         //console.log(durationInLevelDistance);
 
         let factor;
@@ -451,27 +528,31 @@ function StartGame() {
             factor = 10;
         }
 
-        boxes = [new Box({ x: 850, y: 250, image: boxImage })];
+        boxes = [new Box({ x: 2500, y: 250, image: boxImage })];
 
         coins = [
-            new Coin({ x: 800, y: 550, image: coinImage }),
-            new Coin({ x: 1200, y: 350, image: coinImage }),
-            new Coin({ x: 1800, y: 500, image: coinImage }),
-            new Coin({ x: 2400, y: 350, image: coinImage }),
+            new Coin({ x: 900, y: 550, image: coinImage }),
+            new Coin({ x: 1300, y: 350, image: coinImage }),
+            new Coin({ x: 1900, y: 500, image: coinImage }),
+            new Coin({ x: 2500, y: 350, image: coinImage }),
+            new Coin({ x: 3200, y: 350, image: coinImage }),
+            new Coin({ x: 3600, y: 350, image: coinImage }),
+            new Coin({ x: 4100, y: 350, image: coinImage }),
+            new Coin({ x: 4700, y: 350, image: coinImage }),
         ];
 
         plattforms = [
             new Plattform({ x: 0, y: 500, image: plattformImage }),
-            new Plattform({ x: 800, y: 550, image: plattformImage2 }),
+            new Plattform({ x: 800, y: 450, image: plattformImage2 }),
             new Plattform({ x: 1200, y: 350, image: plattformImage }),
             new Plattform({ x: 1800, y: 500, image: plattformImage2 }),
             new Plattform({ x: 2400, y: 350, image: plattformImage }),
-            new Plattform({ x: 3000, y: 550, image: plattformImage2 }),
-            new Plattform({ x: 3500, y: 500, image: plattformImage }),
-            new Plattform({ x: 4000, y: 450, image: plattformImage2 }),
-            new Plattform({ x: 4600, y: 500, image: plattformImage }),
+            new Plattform({ x: 3000, y: 550, image: plattformImage3 }),
+            new Plattform({ x: 3500, y: 500, image: plattformImage3 }),
+            new Plattform({ x: 4000, y: 450, image: plattformImage3 }),
+            new Plattform({ x: 4600, y: 500, image: plattformImage3 }),
             new Plattform({
-                x: durationInLevelDistance,
+                x: 4600,
                 y: 250,
                 image: adsImage,
             }),
@@ -521,7 +602,7 @@ function StartGame() {
                 scenery.push(
                     new Scenery({
                         x: sceneryX,
-                        y: 250,
+                        y: 50,
                         image: roadImage,
                     })
                 );
@@ -533,9 +614,23 @@ function StartGame() {
         scrollOffset = 0;
     }
 
+    function addToEnemies() {
+        enemies.push(
+            new Car({
+                x: 1200,
+                y: 450,
+                image: carImage,
+            })
+        );
+        addingCars = false;
+    }
+
     function animate(timeStamp) {
         const deltaTime = timeStamp - lastTime;
         lastTime = timeStamp;
+        coinsDisplay.innerHTML = numberofcoins;
+        livesDisplay.innerHTML = numberOfLives;
+        distanceDisplay.innerHTML = durationInLevelDistance;
         //console.log(deltaTime)
         requestAnimationFrame(animate);
         ctx.fillStyle = "white";
@@ -552,12 +647,19 @@ function StartGame() {
         });
         plattforms.forEach((plattform) => {
             //console.log(movingHeight.value);
-            plattform.position.y = plattform.setY + movingHeight.value / 3;
+            if (plattform.image === plattformImage2) {
+                plattform.position.y = plattform.setY + movingHeight.value / 3;
+            }
         });
 
         enemies.forEach((enemy) => {
             enemy.draw();
             enemy.update();
+            if (durationInLevelDistance < 44000 && showingCars) {
+                showingCars = false;
+                addingCars = true;
+                addToEnemies();
+            }
         });
 
         coins.forEach((coin) => {
@@ -582,6 +684,7 @@ function StartGame() {
 
             //On player movement after screen middle
             if (keys.right.pressed) {
+                durationInLevelDistance -= player.speed;
                 scrollOffset += player.speed;
                 plattforms.forEach((plattform) => {
                     plattform.position.x -= player.speed;
@@ -595,10 +698,11 @@ function StartGame() {
                 coins.forEach((coin) => {
                     coin.position.x -= player.speed;
                 });
-                  boxes.forEach((box) => {
+                boxes.forEach((box) => {
                     box.position.x -= player.speed;
                 });
             } else if (keys.left.pressed && scrollOffset > 100) {
+                durationInLevelDistance += player.speed;
                 scrollOffset -= 5;
                 plattforms.forEach((plattform) => {
                     plattform.position.x += player.speed;
@@ -615,7 +719,6 @@ function StartGame() {
                 boxes.forEach((box) => {
                     box.position.x += player.speed;
                 });
-
             }
         }
 
@@ -623,7 +726,7 @@ function StartGame() {
         plattforms.forEach((plattform) => {
             if (
                 player.position.y + player.height <=
-                    plattform.position.y + playerOffsetY * 1.5 &&
+                    plattform.position.y + playerOffsetY &&
                 player.position.y + player.height + player.velocity.y >=
                     plattform.position.y &&
                 player.position.x + player.width >= plattform.position.x &&
@@ -644,32 +747,39 @@ function StartGame() {
         });
         var newFoxX = player.position.x;
         var newFoxY = player.position.y;
+
         //Enemy collision
         enemies.forEach((enemy) => {
-            if (
-                player.position.y <= enemy.position.y + enemy.height &&
-                player.position.y +
-                    player.height +
-                    player.velocity.y -
-                    playerOffsetY >=
-                    enemy.position.y + enemy.height / 5 &&
-                player.position.x + player.width / 2 >= enemy.position.x &&
-                player.position.x <= enemy.position.x
-            ) {
+            if (enemiesDoDamage) {
+                if (
+                    player.position.y <= enemy.position.y + enemy.height / 3 &&
+                    player.position.y +
+                        player.height +
+                        player.velocity.y -
+                        playerOffsetY >=
+                        enemy.position.y + enemy.height / 5 &&
+                    player.position.x + player.width / 2 >= enemy.position.x &&
+                    player.position.x <= enemy.position.x
+                ) {
                     player.velocity.y = 0;
-                    numberOfLives --;
-                    if(numberOfLives <= 0)
-                    {
-                        init();
 
+                    if (numberOfLives > 0) {
+                        numberOfLives--;
+                        enemiesDoDamage = false;
                     }
 
-
+                    if (numberOfLives === 0 && enemiesDoDamage) {
+                        init();
+                    }
+                    setTimeout(() => {
+                        enemiesDoDamage = true;
+                    }, 3000);
+                }
             }
         });
 
         //Coin collision
-        let numberofcoins = 0;
+
         coins.forEach((coin, index) => {
             if (
                 player.position.y <= coin.position.y + coin.height &&
@@ -705,8 +815,9 @@ function StartGame() {
 
         //songDuration * 20 + 400
         if (scrollOffset > 5100) {
-            init();
-            alert("Congratulations, you win!");
+
+            form.score = (durationInLevelDistance + numberofcoins - numberOfLives);
+            submit();
         }
 
         if (player.position.y > canvas.height) {
@@ -796,11 +907,70 @@ watch(
 );
 </script>
 
+<style scoped>
+.buttonA {
+    position: relative;
+    top: 550px;
+    height: 80px;
+    width: 80px;
+    display: none;
+}
+
+.buttonB {
+    position: relative;
+    top: 520px;
+    height: 80px;
+    width: 80px;
+    display: none;
+}
+
+.pad {
+    position: relative;
+    top: 520px;
+    height: 180px;
+    width: 180px;
+    display: none;
+}
+
+p {
+    padding: 20px;
+}
+
+#gameContainer {
+    background-color: beige;
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+@media only screen and (max-width: 600px) {
+    canvas {
+        width: 550px;
+        height: 250px;
+    }
+}
+
+.gameinfo {
+    font-size: xx-large;
+}
+</style>
 
 
 <template>
-    <div class="flex justify-center">
+    <div class="flex justify-center p-4 gameinfo">
+        <p>Coins: <span id="coins"></span></p>
+        <p>Current distance: <span id="distance"></span></p>
+        <p>Lives left: <span id="lives"></span></p>
+    </div>
+
+    <div class="flex justify-center" id="gameContainer">
+        <button class="pad" id="pad"><img src="img/pad.png" alt="" /></button>
         <canvas class="self-center" ref="canvas"></canvas>
+        <button class="buttonA" id="buttonA">
+            <img src="img/button.png" alt="" />
+        </button>
+        <button class="buttonB" id="buttonB">
+            <img src="img/button.png" alt="" />
+        </button>
     </div>
     <!--
     <div class="flex justify-center">
@@ -810,10 +980,7 @@ watch(
                 hover:bg-blue-700
                 text-white
                 font-bold
-                py-2
-                px-4
-                rounded-full
-            "
+                py-2>
             type="file"
             id="audioupload"
             name="audioupload"

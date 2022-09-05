@@ -477,13 +477,50 @@ section i {
     background: hsl(var(--c), 95%, 45%);
 }
 
+input[type=file]::file-selector-button {
+  border: 2px solid #2c9c0f;
+  padding: .2em .4em;
+  border-radius: .2em;
+  background-color: #3ec936;
+  transition: 1s;
+  color: white;
+  font-size: xx-large;
+  width: 500px;
+  height: 100px;
+  border-radius: 50px;
+  cursor:pointer;
+  margin: 20px;
+}
+
+input[type=file]::file-selector-button:hover {
+  border: 2px solid #60cf44;
+  padding: .2em .4em;
+  border-radius: .9em;
+  background-color: #74eb6d;
+  transition: 1s;
+  width: 500px;
+  height: 100px;
+}
+@media only screen and (max-width: 600px) {
+  input{
+    width: 550px;
+    height: 250px;
+  }
+  input[type=file]::file-selector-button{
+      width: 350px;
+    height: 75px;
+  }
+}
+input[type='file'] {
+  color: transparent;
+}
 </style>
 
 <template>
 
 <div class="flex-col items-center text-center">
     <audio class="center" id="sound"></audio>
-            <label for="avatar">Upload (.wav / .mp3):</label>
+            <label for="avatar" ></label>
             <input
                 class="btn btn-primary"
                 type="file"

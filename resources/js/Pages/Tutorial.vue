@@ -56,12 +56,11 @@ defineProps({
                                 <a
                                     href="/"
                                     class="
-                                        underline
                                         text-gray-900
                                         dark:text-white
                                     "
                                 >
-                                    Visualize songs<!-- FEATURE 2 TITLE HERE --></a
+                                    Choose a song<!-- FEATURE 2 TITLE HERE --></a
                                 >
                             </div>
                         </div>
@@ -76,12 +75,10 @@ defineProps({
                                 "
                             >
                                 <img
-                                    src="img/displays/feat1.png"
+                                    src="img/music.jpg"
                                     class="max-w-md h-64 rounded-full"
                                     alt=""
                                 />
-                                The algorithm finds out the track length and BPM
-                                to create an interactive experience
                                 <!-- FEATURE 1 TEXT HERE -->
                             </div>
                         </div>
@@ -94,12 +91,11 @@ defineProps({
                                 <a
                                     href="/"
                                     class="
-                                        underline
                                         text-gray-900
                                         dark:text-white
                                     "
                                 >
-                                    Play mini-games<!-- FEATURE 2 TITLE HERE --></a
+                                    Collect coins<!-- FEATURE 2 TITLE HERE --></a
                                 >
                             </div>
                         </div>
@@ -114,13 +110,10 @@ defineProps({
                                 "
                             >
                                 <img
-                                    src="img/displays/feat2.png"
+                                    src="img/ogcoin.png"
                                     class="max-w-md h-64 rounded-full"
                                     alt=""
                                 />
-                                An integrated game engine enables the user to
-                                then try out their favorite songs as a video
-                                game
                                 <!-- FEATURE 1 TEXT HERE -->
                             </div>
                         </div>
@@ -133,15 +126,14 @@ defineProps({
                                 <a
                                     href="/"
                                     class="
-                                        underline
                                         text-gray-900
                                         dark:text-white
                                     "
                                 >
-                                    Advertising<!-- FEATURE 2 TITLE HERE --></a
+                                    Turn into a fox<!-- FEATURE 2 TITLE HERE --></a
                                 >
                                 <img
-                                    src="img/displays/feat3.png"
+                                    src="img/foxy.png"
                                     class="max-w-md h-64"
                                     alt=""
                                 />
@@ -172,15 +164,14 @@ defineProps({
                                 <a
                                     href="/"
                                     class="
-                                        underline
                                         text-gray-900
                                         dark:text-white
                                     "
                                 >
-                                    Create images from audio data<!-- FEATURE 2 TITLE HERE --></a
+                                    Get a highscore and compare with friends</a
                                 >
                                 <img
-                                    src="img/displays/feat4.png"
+                                    src="img/clouds.png"
                                     class="max-w-md h-64"
                                     alt=""
                                 />
@@ -243,14 +234,3 @@ defineProps({
     </div>
 </template>
 
-
-<script>
-export default {
-    setup() {
-        let scriptTag = document.createElement("script");
-        scriptTag.async = true;
-        scriptTag.setAttribute("src", `URL to your external script tag`);
-        document.head.appendChild(scriptTag);
-    },
-};
-</script>

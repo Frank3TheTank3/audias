@@ -36,7 +36,12 @@ class GameController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $game = new Game();
+        $game->score = $request->score;
+        $game->save();
+        return Inertia::render('Tutorial', [
+        ]);
+        //return redirect('Tutorial');
     }
 
     /**

@@ -290,13 +290,3 @@ defineProps({
 </template>
 
 
-<script>
-export default {
-    setup() {
-        let scriptTag = document.createElement("script");
-        scriptTag.async = true;
-        scriptTag.setAttribute("src", `URL to your external script tag`);
-        document.head.appendChild(scriptTag);
-    },
-};
-</script>
